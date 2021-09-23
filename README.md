@@ -27,12 +27,12 @@ As for how to actually set up the scene, in the settings folder, you shouldl fin
 **Sphere Placement Radius:** The spheres are placed in a circle on the ground. This number controls the size of that circle  
 **Use Emissive Spheres:** Whether or not some spheres should be glowing.  
 **Use size range:** Whether or not to only make spheres in a certain size range glow. *This does not mean that all spheres within that size range glow. The percentage of spheres within that range that glow is determined by Emissive Chance.*  
-**Emissive Chance:** If Use Emissive Spheres is checked, the chance of a given sphere glowing
-**Emissive Size Range:** If Use Size Range is checked, the size range a given sphere has to be in to glow
-**Metallic Percentage:** The percentage of spheres that will be metallic (Highly reflective)
-**Non Metal Reflectiveness:** Controlls how reflective the non-metal spheres will be
-**Metallic Smoothness Range:** Controlls the range of smoothness values the metallic spheres will have, which determines how light will reflect off them
-**Non Metallic Smoothness Range:** Same as above, but for the non metallic spheres
+**Emissive Chance:** If Use Emissive Spheres is checked, the chance of a given sphere glowing  
+**Emissive Size Range:** If Use Size Range is checked, the size range a given sphere has to be in to glow  
+**Metallic Percentage:** The percentage of spheres that will be metallic (Highly reflective)  
+**Non Metal Reflectiveness:** Controlls how reflective the non-metal spheres will be  
+**Metallic Smoothness Range:** Controlls the range of smoothness values the metallic spheres will have, which determines how light will reflect off them  
+**Non Metallic Smoothness Range:** Same as above, but for the non metallic spheres  
 
 ![Ground Settings](https://cdn.discordapp.com/attachments/647518062328938497/890453148538396702/Ground_Settings.png)  
 **Albedo:** The color of the ground, as RGB  
