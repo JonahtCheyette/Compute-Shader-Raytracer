@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09948bcf336c6b245adcc705cd0a88d8, type: 3}
   m_Name: EmissiveInStyle
   m_EditorClassIdentifier: 
-  sphereSeed: 1000000
-  sphereRadius: {x: 3, y: 8}
-  spheresMax: 100
+  sphereSeed: 994854
+  sphereRadius: {x: 1, y: 10}
+  spheresMax: 1496
   spherePlacementRadius: 100
   useEmissiveSpheres: 1
-  useSizeRange: 0
-  emissiveChance: 0.05
-  emissiveSizeRange: {x: 4, y: 7}
-  metallicPercentage: 0.5
+  useSizeRange: 1
+  emissiveChance: 1
+  emissiveSizeRange: {x: 1, y: 3}
+  metallicPercentage: 1
   nonMetalReflectiveness: 0.2
-  metallicSmoothnessRange: {x: 0, y: 1}
+  metallicSmoothnessRange: {x: 1, y: 1}
   nonMetallicSmoothnessRange: {x: 0, y: 1}

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78883aa425f390049aa0285541a064b9, type: 3}
   m_Name: Lavender
   m_EditorClassIdentifier: 
-  albedo: {x: 0.5, y: 0.5, z: 0.5}
-  specular: {x: 0.05, y: 0.05, z: 0.05}
-  smoothness: 0.2
+  albedo: {x: 0, y: 1, z: 0}
+  specular: {x: 0, y: 1, z: 1}
+  smoothness: 1.46
   emission: {x: 0, y: 0, z: 0}

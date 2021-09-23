@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: ClayBalls
   m_EditorClassIdentifier: 
   sphereSeed: 1000000
-  sphereRadius: {x: 3, y: 8}
+  sphereRadius: {x: 3, y: 20}
   spheresMax: 100
   spherePlacementRadius: 100
-  useEmissiveSpheres: 1
+  useEmissiveSpheres: 0
   useSizeRange: 0
-  emissiveChance: 0.05
-  emissiveSizeRange: {x: 4, y: 7}
-  metallicPercentage: 0.5
-  nonMetalReflectiveness: 0.2
+  emissiveChance: 0
+  emissiveSizeRange: {x: 3, y: 3}
+  metallicPercentage: 0
+  nonMetalReflectiveness: 0
   metallicSmoothnessRange: {x: 0, y: 1}
   nonMetallicSmoothnessRange: {x: 0, y: 1}
