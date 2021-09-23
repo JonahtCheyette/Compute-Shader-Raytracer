@@ -7,9 +7,9 @@ public class CamMove : MonoBehaviour {
 
     float xRotation = 0f;
 
-    public float maxHorizontalSpeed = 10;
-    public float horizontalAcceleration = 2;
-    public float verticalSpeed = 10;
+    public float maxHorizontalSpeed = 50;
+    public float horizontalAcceleration = 10;
+    public float verticalSpeed = 50;
     Vector2 horizontalVelocity = new Vector2();
     bool cursorIsLocked;
 

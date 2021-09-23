@@ -1,14 +1,19 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+[ImageEffectAllowedInSceneView]
+[ExecuteAlways]
 public class RayTracingMaster : MonoBehaviour {
-    bool useAntiAliasing = true;
-    bool useDiffuseLighting = true;
-    bool moveSpheres = false;
+    [Range(0, 7)]
+    public int maxNumReflections = 2;
 
-    //[Range(0, 7)]
-    int maxNumReflections = 2;
+    [Range(0,3)]
+    public float skyboxLighting = 1;
 
+    public GroundSettings groundSettings;
+
+    public SphereGenerationSettings sphereGeneration;
+    /*
     //the seed for sphere generation
     public int sphereSeed;
 
@@ -19,22 +24,23 @@ public class RayTracingMaster : MonoBehaviour {
     public uint spheresMax = 100;
     //the circle we want the spheres to be in, centered at (0,0)
     public float spherePlacementRadius = 100.0f;
-    //how far along their "bob cycle" each sphere is
-    private List<float> bobCycle = new List<float>();
+    //whether or not to populate the scene with emissive spheres
+    public bool useEmissiveSpheres;
+    [Range(0,1)]
+    public float metallicPercentage;
+    [Range(0, 1)]
+    public float nonMetalReflectiveness;
 
+    public Vector2 metallicSmoothnessRange = Vector2.up;
+    public Vector2 nonMetallicSmoothnessRange = Vector2.up;
+    */
     private ComputeBuffer sphereBuffer;
 
     //the shader to use
     public ComputeShader rayTracingShader;
 
-    //the scene's light
-    public Light directionalLight;
-
     //the texture that will be filled by the shader, then blited to the screen
     private RenderTexture target;
-
-    //the camera the script is attatched to
-    private Camera _camera;
 
     //the skybox texture
     public Texture skyboxTexture;
@@ -42,123 +48,114 @@ public class RayTracingMaster : MonoBehaviour {
     //the current amount of sampled spots in each pixel (gets reset with each time the camera moves
     private uint currentSample = 0;
     private Material addMaterial;
-    
-    //the spheres
-    List<Sphere> spheres = new List<Sphere>();
 
     //our buffer to hold the results with of our shaders with high precision
     private RenderTexture converged;
 
-    private void OnEnable() {
-        currentSample = 0;
-        SetUpScene();
+    //used to prevent erroneous error messages when switching from playmode to editor mode
+    private bool wasPlayingLastFrame;
+
+    private void Start() {
+        ResetScene();
+    }
+
+    private void Update() {
+        ResetSampleCount();
+        wasPlayingLastFrame = true;
+    }
+
+    private void OnValidate() {
+        SetAutoUpdateUp();
+        ResetScene();
+    }
+
+    private void SetAutoUpdateUp() {
+        if (groundSettings != null) {
+            groundSettings.OnValuesUpdated -= ResetScene;
+            groundSettings.OnValuesUpdated += ResetScene;
+        }
+        if (sphereGeneration != null) {
+            sphereGeneration.OnValuesUpdated -= ResetScene;
+            sphereGeneration.OnValuesUpdated += ResetScene;
+        }
     }
 
     private void OnDisable() {
+        ReleaseSphereBuffer();
+    }
+
+    //called every frame by unity, which automatically passes in what's already rendered as the source and the camera's target (in most cases, the screen) as the destination
+    private void OnRenderImage(RenderTexture source, RenderTexture destination) {
+        if (!Application.isPlaying) {
+            ResetSampleCount();
+        }
+        SetDynamicShaderParameters();
+        Render(destination);
+    }
+
+    private void ResetScene() {
+        if (sphereGeneration != null && groundSettings != null) {
+            currentSample = 0;
+            SetUpScene();
+            SetStaticShaderVariables();
+        } else {
+            if (sphereGeneration == null && groundSettings == null) {
+                print("No Sphere Generation Settings or Ground Settings found. Please attatch both to the RayTracingMaster script attatched to the camera in the editor");
+            } else if (sphereGeneration == null) {
+                print("No Sphere Generation Settings found. Please attatch one to the RayTracingMaster script attatched to the camera in the editor");
+            } else {
+                print("No Ground Settings found. Please attatch one to the RayTracingMaster script attatched to the camera in the editor");
+            }
+        }
+    }
+
+    private void ResetSampleCount() {
+        //resetting the current amount of samples
+        if (transform.hasChanged) {
+            currentSample = 0;
+            transform.hasChanged = false;
+        }
+    }
+
+    private void ReleaseSphereBuffer() {
         if (sphereBuffer != null) {
             sphereBuffer.Release();
         }
     }
 
     private void SetUpScene() {
-        Random.InitState(sphereSeed);
-        spheres = new List<Sphere>();
-        bobCycle = new List<float>();
-        // Add a number of random spheres
-        for (int i = 0; i < spheresMax; i++) {
-            Sphere sphere = new Sphere();
-
-            // Radius and radius
-            sphere.radius = sphereRadius.x + Random.value * (sphereRadius.y - sphereRadius.x);
-            Vector2 randomPos = Random.insideUnitCircle * spherePlacementRadius;
-            sphere.position = new Vector3(randomPos.x, sphere.radius, randomPos.y);
-
-            // Reject spheres that are intersecting others
-            foreach (Sphere other in spheres) {
-                float minDist = sphere.radius + other.radius;
-                if (Vector3.SqrMagnitude(sphere.position - other.position) < minDist * minDist) {
-                    //evil >:)
-                    goto SkipSphere;
-                }
-            }
-
-            //getting random points in a sine wave and adding them to the positions with the values being mapped to the range [0, 1]
-            bobCycle.Add(Random.Range(0, 6.283185f));
-            if (moveSpheres) {
-                sphere.position.y += (Mathf.Sin(bobCycle[bobCycle.Count - 1]) + 1) / 2f;
-            }
-
-            // Albedo and specular color
-            Color color = Random.ColorHSV();
-            //float spec = Random.value;
-            bool metal = Random.value < 0.5f;
-            sphere.albedo = metal ? Vector3.zero : new Vector3(color.r, color.g, color.b);
-            sphere.specular = metal ? new Vector3(color.r, color.g, color.b) : Vector3.one * 0.4f;
-            bool lightSource = Random.value * (sphere.radius - sphereRadius.x) / (sphereRadius.y - sphereRadius.x) < 0.05f;
-
-            sphere.emission = lightSource ? Vector3.one * 4f : Vector3.zero;
-            sphere.smoothness = Random.value;
-            // Add the sphere to the list
-            spheres.Add(sphere);
-        SkipSphere:
-            continue;
-        }
+        List<Sphere> spheres = sphereGeneration.GenerateSpheres();
         // Assign to compute buffer
-        sphereBuffer = new ComputeBuffer(spheres.Count, 56);
+        if(sphereBuffer != null && sphereBuffer.IsValid()){
+            if (sphereBuffer.count != spheres.Count) {
+                sphereBuffer.Dispose();
+            }
+        }
+        if (sphereBuffer == null || !sphereBuffer.IsValid()) {
+            sphereBuffer = new ComputeBuffer(spheres.Count, 56);
+        }
         sphereBuffer.SetData(spheres);
     }
 
-    private void Awake() {
-        _camera = GetComponent<Camera>();
-    }
-
-    private void Update() {
-        //resetting the current amount of samples
-        if (transform.hasChanged || directionalLight.transform.hasChanged) {
-            currentSample = 0;
-            transform.hasChanged = false;
-            directionalLight.transform.hasChanged = false;
-        }
-        if (moveSpheres) {
-            if (spheres.Count == bobCycle.Count) {
-                for (int i = 0; i < bobCycle.Count; i++) {
-                    bobCycle[i] += 0.005f;
-                    Sphere s = spheres[i];
-                    s.position.y = spheres[i].radius + (Mathf.Sin(bobCycle[i]) + 1) / 2f;
-                    spheres[i] = s;
-                }
-            }
-
-            // Assign to compute buffer
-            if (sphereBuffer != null) {
-                sphereBuffer.Release();
-            }
-            sphereBuffer = new ComputeBuffer(spheres.Count, 56);
-            sphereBuffer.SetData(spheres);
+    private void SetStaticShaderVariables() {
+        if (rayTracingShader != null) {
+            rayTracingShader.SetInt("maxNumReflections", maxNumReflections + 1);
+            //note, in the compute shader the texture is actually called samplerSkyboxTexture, because samplers are weird
+            rayTracingShader.SetTexture(0, "SkyboxTexture", skyboxTexture);
+            rayTracingShader.SetBuffer(0, "spheres", sphereBuffer);
+            rayTracingShader.SetVector("groundAlbedo", groundSettings.albedo);
+            rayTracingShader.SetVector("groundSpecular", groundSettings.specular);
+            rayTracingShader.SetFloat("groundSmoothness", groundSettings.smoothness);
+            rayTracingShader.SetVector("groundEmission", groundSettings.emission);
         }
     }
 
-    private void SetShaderParameters() {
-        Vector3 l = directionalLight.transform.forward;
-        rayTracingShader.SetVector("directionalLight", new Vector4(l.x, l.y, l.z, directionalLight.intensity));
-        if (useAntiAliasing) {
-            rayTracingShader.SetVector("pixelOffset", new Vector2(Random.value, Random.value));
-        } else {
-            rayTracingShader.SetVector("pixelOffset", new Vector2(0.5f, 0.5f));
-        }
-        rayTracingShader.SetBool("useDiffuseLighting", useDiffuseLighting);
-        rayTracingShader.SetInt("maxNumReflections", maxNumReflections + 1);
-        rayTracingShader.SetTexture(0, "SkyboxTexture", skyboxTexture);
-        rayTracingShader.SetMatrix("cameraToWorld", _camera.cameraToWorldMatrix);
-        rayTracingShader.SetMatrix("cameraInverseProjection", _camera.projectionMatrix.inverse);
-        rayTracingShader.SetBuffer(0, "spheres", sphereBuffer);
+    private void SetDynamicShaderParameters() {
+        rayTracingShader.SetVector("pixelOffset", new Vector2(Random.value, Random.value));
+        rayTracingShader.SetMatrix("cameraToWorld", Camera.current.cameraToWorldMatrix);
+        rayTracingShader.SetMatrix("cameraInverseProjection", Camera.current.projectionMatrix.inverse);
         rayTracingShader.SetFloat("seed", Random.value);
-    }
-
-    //called every frame by unity, which automatically passes in what's already rendered as the source and the camera's target (in most cases, the screen) as the destination
-    private void OnRenderImage(RenderTexture source, RenderTexture destination) {
-        SetShaderParameters();
-        Render(destination);
+        rayTracingShader.SetFloat("skyboxLighting", skyboxLighting);
     }
 
     private void Render(RenderTexture destination) {
@@ -174,15 +171,11 @@ public class RayTracingMaster : MonoBehaviour {
         if (addMaterial == null) {
             addMaterial = new Material(Shader.Find("Hidden/AddShader"));
         }
-        if (useAntiAliasing) {
-            addMaterial.SetFloat("Sample", currentSample);
-            //this function essentially copies the source texture to the destination texture. If a material is passed in, it applies that material's shader to the texture, using the source as the materials' _MainTex variable
-            Graphics.Blit(target, converged, addMaterial);
-            Graphics.Blit(converged, destination);
-            currentSample++;
-        } else {
-            Graphics.Blit(target, destination);
-        }
+        addMaterial.SetFloat("Sample", currentSample);
+        //this function essentially copies the source texture to the destination texture. If a material is passed in, it applies that material's shader to the texture, using the source as the materials' _MainTex variable
+        Graphics.Blit(target, converged, addMaterial);
+        Graphics.Blit(converged, destination);
+        currentSample++;
     }
 
     private void InitRenderTexture() {
@@ -219,7 +212,7 @@ public struct Sphere {
     public Vector3 position;
     public float radius;
     public Vector3 albedo;
-    public Vector3 specular;
+    public Vector3 specular; //the tint of the sphere's reflection
     public float smoothness;
-    public Vector3 emission;
+    public Vector3 emission; // whether the sphere emits light
 }

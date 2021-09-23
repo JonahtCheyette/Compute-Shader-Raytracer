@@ -7,21 +7,18 @@ float4x4 cameraInverseProjection;
 
 Texture2D<float4> SkyboxTexture;
 
-//must be named sampler + whatever the name of the texture is
+//must be named sampler + whatever the name of the texture is, because samplers are weird
 SamplerState samplerSkyboxTexture;
 static const float PI = 3.14159265f;
 
 //the offset for the pixel
 float2 pixelOffset;
 
-//the light to use
-float4 directionalLight;
+//the light level of the skybox
+float skyboxLighting;
 
 //the maximum number of reflections
-int maxNumReflections = 8;
-
-//whether to use hard shadows
-bool useDiffuseLighting = false;
+int maxNumReflections;
 
 float2 pixel;
 float seed;
@@ -53,6 +50,12 @@ struct Sphere {
 
 //the spheres
 StructuredBuffer<Sphere> spheres;
+
+//ground variables
+float3 groundAlbedo;
+float3 groundSpecular;
+float groundSmoothness;
+float3 groundEmission;
 
 Ray CreateRay(float3 origin, float3 direction) {
     Ray ray;
@@ -129,10 +132,10 @@ void IntersectGroundPlane(Ray ray, inout RayHit bestHit) {
         bestHit.distance = t;
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = float3(0.0f, 1.0f, 0.0f);
-        bestHit.albedo = float3(0.5f, 0.5f, 0.5f);
-        bestHit.specular = float3(0.05f, 0.05f, 0.05f);
-        bestHit.smoothness = 0.2f;
-        bestHit.emission = float3(0.0f, 0.0f, 0.0f);
+        bestHit.albedo = groundAlbedo;
+        bestHit.specular = groundSpecular;
+        bestHit.smoothness = groundSmoothness;
+        bestHit.emission = groundEmission;
     }
 }
 
@@ -169,7 +172,7 @@ RayHit Trace(Ray ray) {
     return bestHit;
 }
 
-float energy(float3 color) {
+float energy(float3 color) { // averages color chanels
     return dot(color, 1.0f / 3.0f);
 }
 
@@ -205,10 +208,9 @@ float3 Shade(inout Ray ray, RayHit hit) {
     } else {
         // Erase the ray's energy - the sky doesn't reflect anything
         ray.energy = 0.0f;
-        // Sample the skybox and write it
         float theta = acos(ray.direction.y) / -PI;
         float phi = atan2(ray.direction.x, -ray.direction.z) / -PI * 0.5f;
-        return SkyboxTexture.SampleLevel(samplerSkyboxTexture, float2(phi, theta), 0).xyz * 0.3f;
+        return SkyboxTexture.SampleLevel(samplerSkyboxTexture, float2(phi, theta), 0).xyz * skyboxLighting;
     }
 }
 
@@ -220,7 +222,7 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     uint width, height;
     result.GetDimensions(width, height);
     // Transform pixel to [-1,1] range
-    float2 uv = float2((id.xy + pixelOffset) / float2(width, height) * 2.0f - 1.0f);
+    float2 uv = float2((pixel + pixelOffset) / float2(width, height) * 2.0f - 1.0f);
     // Get a ray for the UVs
     Ray ray = CreateCameraRay(uv);
     // Trace and shade
