@@ -33,14 +33,14 @@ As for how to actually set up the scene, in the settings folder, you shouldl fin
 **Non Metal Reflectiveness:** Controlls how reflective the non-metal spheres will be  
 **Metallic Smoothness Range:** Controlls the range of smoothness values the metallic spheres will have, which determines how light will reflect off them  
 **Non Metallic Smoothness Range:** Same as above, but for the non metallic spheres  
-
+  
 ![Ground Settings](https://cdn.discordapp.com/attachments/647518062328938497/890453148538396702/Ground_Settings.png)  
 **Albedo:** The color of the ground, as RGB  
 **Specular:** The tint of the ground's reflections, as RGB  
 **Smoothness:** How smooth the ground is, which affects reflections  
 **Emission:** The light the ground emits, as RGB  
-
-## Some Images
+  
+## Some Examples
 ![Image 1](https://cdn.discordapp.com/attachments/647518062328938497/890453143710728192/Compute-Shader-Raytracer_-_SampleScene_-_PC_Mac__Linux_Standalone_-_Unity_2019.4.3f1_Personal___DX11.png)  
 ![Image 2](https://cdn.discordapp.com/attachments/647518062328938497/890453146437029918/Compute-Shader-Raytracer_-_SampleScene_-_PC_Mac__Linux_Standalone_-_Unity_2019.4.3f1_Personal___DX11.png)  
 ![Image 3](https://cdn.discordapp.com/attachments/647518062328938497/890453148932665404/Compute-Shader-Raytracer_-_SampleScene_-_PC_Mac__Linux_Standalone_-_Unity_2019.4.3f1_Personal___DX11.png)  
