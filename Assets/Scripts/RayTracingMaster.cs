@@ -13,27 +13,6 @@ public class RayTracingMaster : MonoBehaviour {
     public GroundSettings groundSettings;
 
     public SphereGenerationSettings sphereGeneration;
-    /*
-    //the seed for sphere generation
-    public int sphereSeed;
-
-    //the varaibles for sphere generation
-    //the min and max radii
-    public Vector2 sphereRadius = new Vector2(3.0f, 8.0f);
-    //the number of spheres(not including spheres that got deleted to make it so that none of the spheres took up the other's space)
-    public uint spheresMax = 100;
-    //the circle we want the spheres to be in, centered at (0,0)
-    public float spherePlacementRadius = 100.0f;
-    //whether or not to populate the scene with emissive spheres
-    public bool useEmissiveSpheres;
-    [Range(0,1)]
-    public float metallicPercentage;
-    [Range(0, 1)]
-    public float nonMetalReflectiveness;
-
-    public Vector2 metallicSmoothnessRange = Vector2.up;
-    public Vector2 nonMetallicSmoothnessRange = Vector2.up;
-    */
     private ComputeBuffer sphereBuffer;
 
     //the shader to use
