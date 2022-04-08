@@ -1,10 +1,6 @@
 # Compute Shader Raytracer
 This is a raytracer I made mostly to learn about compute shaders, so it's not feature rich at all. It can display a ground plane and spheres, all with varying materials. The raytracer will work in the edit mode, but it doesn't converge unless you're in playmode. Made using parts 1 and 2 of [This Tutorial](http://blog.three-eyed-games.com/2018/05/03/gpu-ray-tracing-in-unity-part-1/) then heavily modified to be more user-friendly
 
-## How To Set Up The Project
-This section is for those who haven't downloaded a unity project over github before. For those who have, this project was created in Unity 2019.4.3f1, so if it isn't working on your install try opening it up on that version.  
-Firstly, you're gonna need unity, specifically version 2019.4.3f1. There's a free personal version of unity, so download that, then go to installs in the unity hub, hit add, and select Unity 2019.4.3f1. After that clone this repository to your computer, then open up unity hub, go to **Projects>Add** and navigate to the cloned repository.
-
 ## How To Use The Raytracer
 In edit mode, you'll get a preview of what the raytracer is going to be see. Because of how unity works with image effects, the image will always be very grainy in edit mode.  
 If you want the image to be nicer, go into play mode, find a nice angle and spot (mouse to look around, WASD to move, Spacebar to fly up, LShift to fly down) and stay still. The raytracer uses progressive sampling, which is nice and fast (which is great for me because I'm making this on a laptop), but also requires the camera and objects in the scene to not be moving.  
